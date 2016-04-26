@@ -21,3 +21,26 @@ def validate_config():
     '''Validate the configuration created by get_config, exit uncleanly if bad
     config is specified.'''
     pass
+
+
+def login():
+    '''Log in to the Nest API and get some kind of token or some shit.'''
+    pass
+
+
+def fetch_data():
+    '''Get the requested data from the Nest API.'''
+    pass
+
+
+def output_data():
+    '''Output the data in the requested format.'''
+    pass
+
+
+def __init__():
+    get_config()
+    validate_config()
+    login()
+    fetch_data
+    output_data
