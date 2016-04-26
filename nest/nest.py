@@ -1,7 +1,14 @@
 #!/usr/bin/python
 
+import argparse
+
 
 def get_config():
+    parser = argparse.ArgumentParser(description='Query the Nest API and return output in the requested format.')
+    parser.add_argument('--username', '-u', help='Nest API username')
+    parser.add_argument('--password', '-p', help="Nest API password")
+
+    get_config_from_cli
     '''Look for command line args and config file.  If config is in both,
     command line args win.'''
     pass
