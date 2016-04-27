@@ -55,14 +55,15 @@ def get_config_from_cli():
 def get_config_from_file(config_file):
     '''Gets configuration from the specified configuration file.  Returns a dict
     of the parsed file.'''
-    if os.path.isfile(config_file):
-        config = configparser.ConfigParser()
+    config = configparser.ConfigParser()
+
+    try:
         config.read(config_file)
         print('config_file values:')
         pp.pprint(vars(config)['_sections']['nest'])
         return vars(config)['_sections']['nest']
-    else:
-        sys.exit("Non-existent configuration file specified.")
+    except configparser.ParsingError:
+        sys.exit("Error reading configuration file.  Does it exist?")
 
 
 def validate_config(config_cli, config_file):
