@@ -1,7 +1,12 @@
 #!~/nest/bin/python3.4
 
 import argparse
-# import configparser
+import configparser
+import os.path
+import pprint
+import sys
+
+pp = pprint.PrettyPrinter(indent=4)
 
 
 def get_config():
@@ -10,7 +15,6 @@ def get_config():
     config_cli = get_config_from_cli()
     config_file = get_config_from_file(config_cli['file'])
     config_merged = validate_config(config_cli, config_file)
-    print(config_merged)
     return config_cli
 
 
@@ -43,13 +47,22 @@ def get_config_from_cli():
         type=str,
         default='nest.conf',
         help="Configuration file.  Defaults to nest.conf.")
+    print('cli flags')
+    pp.pprint(vars(parser.parse_args()))
     return vars(parser.parse_args())
 
 
 def get_config_from_file(config_file):
     '''Gets configuration from the specified configuration file.  Returns a dict
     of the parsed file.'''
-    return {'scale': 'f', 'output': 'json'}
+    if os.path.isfile(config_file):
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        print('config_file values:')
+        pp.pprint(vars(config)['_sections']['nest'])
+        return vars(config)['_sections']['nest']
+    else:
+        sys.exit("Non-existent configuration file specified.")
 
 
 def validate_config(config_cli, config_file):
