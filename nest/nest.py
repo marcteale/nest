@@ -1,33 +1,64 @@
-#!/usr/bin/python
+#!~/nest/bin/python3.4
 
 import argparse
+# import configparser
 
 
 def get_config():
-    parser = argparse.ArgumentParser(description='Query the Nest API and return output in the requested format.')
-    parser.add_argument('--username', '-u', help='Nest API username')
-    parser.add_argument('--password', '-p', help="Nest API password")
-
-    get_config_from_cli
-    '''Look for command line args and config file.  If config is in both,
-    command line args win.'''
-    pass
+    '''Looks for command line args and config file.  Returns a dict of validated
+    options.'''
+    config_cli = get_config_from_cli()
+    config_file = get_config_from_file(config_cli['file'])
+    config_merged = validate_config(config_cli, config_file)
+    print(config_merged)
+    return config_cli
 
 
 def get_config_from_cli():
-    '''Get configuration from the command line args.'''
-    pass
+    '''Gets configuration from the command line args.  Returns a dict of
+    options.'''
+    parser = argparse.ArgumentParser(
+        description='Query the Nest API and return output in the requested format.')
+    parser.add_argument(
+        '--username', '-u',
+        type=str,
+        help='Nest API username')
+    parser.add_argument(
+        '--password', '-p',
+        type=str,
+        help="Nest API password")
+    parser.add_argument(
+        '--scale', '-s',
+        type=str,
+        default='c',
+        choices=['c', 'f', 'k'],
+        help="Temperature scale.")
+    parser.add_argument(
+        '--output', '-o',
+        type=str,
+        default='observium',
+        choices=['json', 'csv', 'observium', 'rrdtool'])
+    parser.add_argument(
+        '--file', '-f',
+        type=str,
+        default='nest.conf',
+        help="Configuration file.  Defaults to nest.conf.")
+    return vars(parser.parse_args())
 
 
-def get_config_from_file():
-    '''Get configuration from the specified configuration file.'''
-    pass
+def get_config_from_file(config_file):
+    '''Gets configuration from the specified configuration file.  Returns a dict
+    of the parsed file.'''
+    return {'scale': 'f', 'output': 'json'}
 
 
-def validate_config():
-    '''Validate the configuration created by get_config, exit uncleanly if bad
-    config is specified.'''
-    pass
+def validate_config(config_cli, config_file):
+    '''Validates the file and CLI configs fetched by get_config.  If there are
+    conflicts between config_cli and config_file, options in config_cli take
+    precedence.  Exits uncleanly if invalid configuration is specified.
+
+    Takes two dicts.  Returns the merged dict.'''
+    return config_cli
 
 
 def login():
@@ -45,9 +76,8 @@ def output_data():
     pass
 
 
-def __init__():
+if __name__ == '__main__':
     get_config()
-    validate_config()
     login()
-    fetch_data
-    output_data
+    fetch_data()
+    output_data()
