@@ -6,7 +6,7 @@
    name='nest',
    version='0.1.0',
    author='Bob Jenkins & Marc Teale',
-   author_email='aac@example.com',
+   author_email='friendjenkins@gmail.com & marc.teale@gmail.com',
    packages=['package_name', 'package_name.test'],
    scripts=['bin/script1','bin/script2'],
    url='http://pypi.python.org/pypi/PackageName/',
