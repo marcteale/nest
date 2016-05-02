@@ -62,4 +62,5 @@ target/
 .ipynb_checkpoints
 
 # Actual project stuff
+nest/nest.conf
 nest.conf
