@@ -85,9 +85,9 @@ def validate_config(cli_flags, file_config):
                 merged[key] = cli_flags[key]
             elif key in file_config:
                 merged[key] = file_config[key]
-    if merged['username'] is None:
+    if 'username' not in merged:
         sys.exit("No username specified!")
-    if merged['password'] is None:
+    if 'password' not in merged:
         sys.exit("No password specified!")
     pp.pprint(merged)
     return cli_flags
