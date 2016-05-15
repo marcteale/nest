@@ -20,4 +20,7 @@ scale = f
 #   csv
 #   observium
 #   rrdtool
-output = observium
+format = observium
+
+# Output file.  Defaults to stdout.
+# outfile = myoutfile.txt
