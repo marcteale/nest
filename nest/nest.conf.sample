@@ -20,4 +20,11 @@ scale = f
 #   csv
 #   observium
 #   rrdtool
+<<<<<<< HEAD
 output = observium
+=======
+format = observium
+
+# Output file.  Defaults to stdout.
+# outfile = myoutfile.txt
+>>>>>>> butterhog
