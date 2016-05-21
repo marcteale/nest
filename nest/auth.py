@@ -7,6 +7,7 @@ import webbrowser
 import uuid
 import requests
 import json
+import os.path
 
 def get_pin():
     '''Make the user retrieve their temporary pincode from home.nest.com in order
@@ -34,3 +35,15 @@ def get_access_token():
     token_json = json.loads(response.text)
 
     return(token_json['access_token'])
+
+def create_tokenfile():
+    '''Creates ~/.nest token file for futre use by api.'''
+    
+    home_dir = os.path.expanduser('~') + '/'
+
+    if os.path.isfile(home_dir + '.nest'):
+        return('~./nest already exists! Please rename or delete this file before re-running.')
+    else:
+        with open(home_dir + '.nest','w+') as f:
+            f.write(get_access_token())
+        return('Successfully stored access token in ~/.nest')
