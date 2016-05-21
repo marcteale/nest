@@ -93,13 +93,27 @@ def validate_config(cli_flags, file_config):
     return cli_flags
 
 
-def login():
-    '''Log in to the Nest API and get some kind of token or some shit.'''
-    pass
+def login():    
+    '''Load or generate long-term access token and store it at ~/.nest'''
+    import os.path
+    home_dir = os.path.expanduser('~') + '/'
+
+    try:
+        with open(home_dir + '.nest','r') as f:
+            token = f.read()
+    except FileNotFoundError:   
+        import auth
+        auth.create_tokenfile()
+        with open(home_dir + '.nest','r') as f:
+            token = f.read()  
+    return(token)
+   
+
 
 
 def fetch_data():
     '''Get the requested data from the Nest API.'''
+    
     pass
 
 
