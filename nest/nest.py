@@ -93,7 +93,7 @@ def validate_config(cli_flags, file_config):
     return cli_flags
 
 
-def login():    
+def login():    # need to update fetch_data() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
     import os.path
     home_dir = os.path.expanduser('~') + '/'
@@ -109,12 +109,17 @@ def login():
     return(token)
    
 
-
-
-def fetch_data():
+def fetch_data():  # this needs to be fleshed out to include error checking.
     '''Get the requested data from the Nest API.'''
-    
-    pass
+    import requests
+    import json
+
+    api_root = 'https://developer-api.nest.com/'
+    token = login()
+
+    response = requests.get(api_root + '?auth=' + token)
+
+    return(response.text)
 
 
 def output_data():
@@ -124,6 +129,5 @@ def output_data():
 
 if __name__ == '__main__':
     get_config()
-    login()
     fetch_data()
     output_data()
