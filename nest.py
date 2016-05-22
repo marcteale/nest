@@ -11,6 +11,7 @@ pp = pprint.PrettyPrinter(indent=4)
 def get_config():
     '''Looks for command line args and config file.  Returns a dict of validated
     options.'''
+
     cli_flags = get_config_from_cli()
     file_config = get_config_from_file(cli_flags['config'])
     config_merged = validate_config(cli_flags, file_config)
@@ -79,6 +80,9 @@ def validate_config(cli_flags, file_config):
     precedence.  Exits uncleanly if invalid configuration is specified.
 
     Takes two dicts.  Returns the merged dict.'''
+    # TODO: The resulting dict contains unicode and ASCII.  It should be all one
+    # or the other.
+
     merged = {}
 
     print('\nmerged values:')
@@ -101,12 +105,12 @@ def login():    # need to update fetch_data() when renaming this
     home_dir = os.path.expanduser('~') + '/'
 
     try:
-        with open(home_dir + '.nest','r') as f:
+        with open(home_dir + '.nest', 'r') as f:
             token = f.read()
     except:
         import auth
         auth.create_tokenfile()
-        with open(home_dir + '.nest','r') as f:
+        with open(home_dir + '.nest', 'r') as f:
             token = f.read()
     return(token)
 
@@ -126,7 +130,7 @@ def fetch_data():  # this needs to be fleshed out to include error checking.
 
 
 def output_data():
-    '''Output the data in the requested format.''' 
+    '''Output the data in the requested format.'''
     api_json = fetch_data()
     data = {}
     #loop through the json to flatten to dict with pipe-dilimited keywords
