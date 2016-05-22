@@ -101,13 +101,13 @@ def login():    # need to update fetch_data() when renaming this
     try:
         with open(home_dir + '.nest','r') as f:
             token = f.read()
-    except FileNotFoundError:   
+    except:
         import auth
         auth.create_tokenfile()
         with open(home_dir + '.nest','r') as f:
-            token = f.read()  
+            token = f.read()
     return(token)
-   
+
 
 def fetch_data():  # this needs to be fleshed out to include error checking.
     '''Get the requested data from the Nest API.'''
