@@ -30,7 +30,7 @@ def get_access_token():
 
     pin = get_pin()
     access_token_url = 'https://api.home.nest.com/oauth2/access_token?client_id=e8042a21-e70e-49a6-8430-3fe17fcea7ed&code='+pin+'&client_secret=6K4PzAUC3GsFhB0U5twr2P8If&grant_type=authorization_code'
-    
+
     response = requests.post(access_token_url)
     token_json = json.loads(response.text)
 
@@ -38,7 +38,7 @@ def get_access_token():
 
 def create_tokenfile():
     '''Creates ~/.nest token file for futre use by api.'''
-    
+
     home_dir = os.path.expanduser('~') + '/'
 
     if os.path.isfile(home_dir + '.nest'):
