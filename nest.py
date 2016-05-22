@@ -123,14 +123,18 @@ def fetch_data():  # this needs to be fleshed out to include error checking.
 def output_data():
     '''Output the data in the requested format.'''
     api_json = fetch_data()
-    data = {}
-    # loop through the json to flatten to dict with pipe-delimited keywords
+    data = []
+    # loop through the json to flatten to tuple with pipe-delimited fields
     for device_type_key in api_json:
         for device_id_key in api_json[device_type_key]:
             for key in api_json[device_type_key][device_id_key]:
-                data[device_type_key + '|' + device_id_key + '|' + key] = api_json[device_type_key][device_id_key][key]
+                # data[device_type_key + '|' + device_id_key + '|' + key] = api_json[device_type_key][device_id_key][key]
+                data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key, api_json[device_type_key][device_id_key][key]))
+    data.sort()
     return(data)
 
 if __name__ == '__main__':
     get_config()
-    output_data()
+    print('<<<nest>>>')
+    for line in output_data():
+        print line
