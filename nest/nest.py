@@ -19,7 +19,9 @@ def get_config():
 
 def get_config_from_cli():
     '''Gets configuration from the command line args.  Returns a dict of
-    options.'''
+    options.
+
+    TODO: The help doesn't print because of how this is called.'''
     parser = argparse.ArgumentParser(
         description='Query the Nest API and return output in the requested format.')
     parser.add_argument(
