@@ -113,21 +113,27 @@ def fetch_data():  # this needs to be fleshed out to include error checking.
     '''Get the requested data from the Nest API.'''
     import requests
     import json
-
     api_root = 'https://developer-api.nest.com/'
     token = login()
 
     response = requests.get(api_root + '?auth=' + token)
 
-    return(response.text)
+    api_json = json.loads(response.text)
+
+    return(api_json['devices'])
 
 
 def output_data():
-    '''Output the data in the requested format.'''
-    pass
-
+    '''Output the data in the requested format.''' 
+    api_json = fetch_data()
+    data = {}
+    #loop through the json to flatten to dict with pipe-dilimited keywords
+    for device_type_key in api_json:
+        for device_id_key in api_json[device_type_key]:
+            for key in api_json[device_type_key][device_id_key]:
+                data[device_type_key + '|' + device_id_key + '|' + key] = api_json[device_type_key][device_id_key][key]
+    return(data)
 
 if __name__ == '__main__':
     get_config()
-    fetch_data()
     output_data()
