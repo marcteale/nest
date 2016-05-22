@@ -136,4 +136,4 @@ if __name__ == '__main__':
     get_config()
     print('<<<nest>>>')
     for line in output_data():
-        print line
+        print(line)
