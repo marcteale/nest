@@ -1,7 +1,11 @@
 #!/usr/bin/python
 
 import argparse
+import auth
 import configparser
+import json
+import os.path
+import requests
 import sys
 
 
@@ -92,14 +96,12 @@ def validate_config(cli_flags, file_config):
 
 def login():    # need to update fetch_data() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
-    import os.path
     home_dir = os.path.expanduser('~') + '/'
 
     try:
         with open(home_dir + '.nest', 'r') as f:
             token = f.read()
     except:
-        import auth
         auth.create_tokenfile()
         with open(home_dir + '.nest', 'r') as f:
             token = f.read()
@@ -108,8 +110,6 @@ def login():    # need to update fetch_data() when renaming this
 
 def fetch_data():  # this needs to be fleshed out to include error checking.
     '''Get the requested data from the Nest API.'''
-    import requests
-    import json
     api_root = 'https://developer-api.nest.com/'
     token = login()
 
@@ -128,7 +128,6 @@ def output_data():
     for device_type_key in api_json:
         for device_id_key in api_json[device_type_key]:
             for key in api_json[device_type_key][device_id_key]:
-                # data[device_type_key + '|' + device_id_key + '|' + key] = api_json[device_type_key][device_id_key][key]
                 data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key, api_json[device_type_key][device_id_key][key]))
     data.sort()
     return(data)
