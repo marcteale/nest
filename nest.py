@@ -2,10 +2,7 @@
 
 import argparse
 import configparser
-import pprint
 import sys
-
-pp = pprint.PrettyPrinter(indent=4)
 
 
 def get_config():
@@ -55,8 +52,6 @@ def get_config_from_cli():
         type=str,
         default=None,
         help="Output file.  Defaults to stdout.")
-    print('cli flags')
-    pp.pprint(vars(parser.parse_args()))
     return vars(parser.parse_args())
 
 
@@ -67,8 +62,6 @@ def get_config_from_file(file_config):
 
     try:
         config.read(file_config)
-        print('file_config values:')
-        pp.pprint(vars(config)['_sections']['nest'])
         return vars(config)['_sections']['nest']
     except:
         sys.exit("Error reading configuration file.  Does it exist?")
@@ -85,7 +78,6 @@ def validate_config(cli_flags, file_config):
 
     merged = {}
 
-    print('\nmerged values:')
     for key in cli_flags:
             if cli_flags[key] is not None:
                 merged[key] = cli_flags[key]
@@ -95,7 +87,6 @@ def validate_config(cli_flags, file_config):
         sys.exit("No username specified!")
     if 'password' not in merged:
         sys.exit("No password specified!")
-    pp.pprint(merged)
     return cli_flags
 
 
@@ -133,7 +124,7 @@ def output_data():
     '''Output the data in the requested format.'''
     api_json = fetch_data()
     data = {}
-    #loop through the json to flatten to dict with pipe-dilimited keywords
+    # loop through the json to flatten to dict with pipe-delimited keywords
     for device_type_key in api_json:
         for device_id_key in api_json[device_type_key]:
             for key in api_json[device_type_key][device_id_key]:
