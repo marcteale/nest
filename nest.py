@@ -184,6 +184,6 @@ def output_data():
 
 if __name__ == '__main__':
     get_config()
-    print('<<<nest>>>')
+    print('<<nest>>')
     for line in output_data():
         print(line)
