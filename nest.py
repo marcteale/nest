@@ -138,7 +138,7 @@ def create_tokenfile():
         return('Successfully stored access token in ~/.nest')
 
 
-def login():    # need to update fetch_data() when renaming this
+def login():    # need to update fetch_json() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
     home_dir = os.path.expanduser('~') + '/'
 
@@ -152,7 +152,7 @@ def login():    # need to update fetch_data() when renaming this
     return(token)
 
 
-def fetch_data():  # this needs to be fleshed out to include error checking.
+def fetch_json():  # this needs to be fleshed out to include error checking.
     '''Get the requested data from the Nest API.'''
     api_root = 'https://developer-api.nest.com/'
     token = login()
@@ -165,8 +165,16 @@ def fetch_data():  # this needs to be fleshed out to include error checking.
 
 
 def output_data():
+    if conf['format'] == 'observium':
+        return(output_observium())
+    elif conf['format'] == 'json':
+        return(print(fetch_json()))
+    elif conf['format'] == 'csv':
+        pass
+
+def output_observium():
     '''Output the data in the requested format.'''
-    api_json = fetch_data()
+    api_json = fetch_json()
     data = []
     # loop through the json to flatten to tuple with pipe-delimited fields
     for device_type_key in api_json:
@@ -197,10 +205,16 @@ def output_data():
                                                              key[:-2],
                                                              api_json[device_type_key][device_id_key][key] + 273.15))
     data.sort()
-    return(data)
+    print('<<<nest>>>')
+    for line in data:
+        print(line)
+    return
+
+
+def output_csv():
+    pass
+
 
 if __name__ == '__main__':
     get_config()
-    print('<<<nest>>>')
-    for line in output_data():
-        print(line)
+    output_data()
