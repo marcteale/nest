@@ -180,6 +180,9 @@ def output_data():
                     elif conf['scale'] == 'f':
                         if key[-2:] == '_f':
                             data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key[:-2], api_json[device_type_key][device_id_key][key]))
+                    elif conf['scale'] == 'k':
+                        if key[-2:] == '_c':
+                            data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key[:-2], api_json[device_type_key][device_id_key][key] + 273.15))
     data.sort()
     return(data)
 
