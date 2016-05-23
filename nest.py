@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import argparse
-import auth
 import configparser
 import json  # simplejson
 import os.path
