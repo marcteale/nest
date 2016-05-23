@@ -3,10 +3,11 @@
 import argparse
 import auth
 import configparser
-import json
+import json  # simplejson
 import os.path
 import requests
 import sys
+import uuid
 
 
 def get_config():
@@ -94,6 +95,56 @@ def validate_config(cli_flags, file_config):
     return cli_flags
 
 
+def get_pin():
+    '''Make the user retrieve their temporary pincode from home.nest.com in order
+    to establish the long-term token used for API calls.
+    Returns user-input 8-digit temporary pincode.'''
+
+    client_id = 'client_id=b1da9bf1-7e2a-49d4-8728-5d4a75349003'
+
+    oauth_base_url = 'https://home.nest.com/login/oauth2?{}&state='.format(client_id)
+    # generate a unique-ish 'state' value to protect against cross-site request
+    # forgery attacks.
+    # https://developers.nest.com/documentation/cloud/how-to-auth
+    state = str(uuid.uuid4())
+
+    print("\n\nLog in at the following URL:\n{}{}\n\n".format(oauth_base_url, state))
+    pin = raw_input("Paste the PIN generated to continue setup: ")
+    while len(pin) != 8:
+        pin = raw_input("Invalid pincode.  Paste the PIN from nest.home.com to continue setup: ")
+    return(pin)
+
+
+def get_access_token():
+    '''Generate and store the long-term token used for home.nest.com API calls.
+    Returns acess token string 'c.123....' '''
+
+    client_id = 'client_id=b1da9bf1-7e2a-49d4-8728-5d4a75349003'
+
+    pin = get_pin()
+    access_token_url = 'https://api.home.nest.com/oauth2/access_token?{}&code={}&client_secret=odIh0k73deLQbRHdNHgepDNPR&grant_type=authorization_code'.format(client_id, pin)
+
+    response = requests.post(access_token_url)
+    token_json = json.loads(response.text)
+
+    return(token_json['access_token'])
+
+
+def create_tokenfile():
+    '''Creates ~/.nest token file for future use by API.'''
+
+    home_dir = os.path.expanduser('~') + '/'
+
+    # TODO: The PIN should be stored in the same location as nest.py.
+    # TODO: Make sure the file actually contains a PIN.
+    if os.path.isfile(home_dir + '.nest'):
+        return('~./nest already exists! Please rename or delete this file before re-running.')
+    else:
+        with open(home_dir + '.nest', 'w+') as f:
+            f.write(get_access_token())
+        return('Successfully stored access token in ~/.nest')
+
+
 def login():    # need to update fetch_data() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
     home_dir = os.path.expanduser('~') + '/'
@@ -102,7 +153,7 @@ def login():    # need to update fetch_data() when renaming this
         with open(home_dir + '.nest', 'r') as f:
             token = f.read()
     except:
-        auth.create_tokenfile()
+        create_tokenfile()
         with open(home_dir + '.nest', 'r') as f:
             token = f.read()
     return(token)
