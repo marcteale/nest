@@ -172,23 +172,32 @@ def output_data():
     for device_type_key in api_json:
         for device_id_key in api_json[device_type_key]:
             for key in api_json[device_type_key][device_id_key]:
-                data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key, api_json[device_type_key][device_id_key][key]))
-                if conf['format'] == 'observium':  # create genericly-named temperature keys
+                data.append("{}|{}|{}|{}".format(device_type_key,
+                                                 device_id_key,
+                                                 key,
+                                                 api_json[device_type_key][device_id_key][key]))
+                # create genericly-named temperature keys
+                if conf['format'] == 'observium':
                     if conf['scale'] == 'c':
                         if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key[:-2], api_json[device_type_key][device_id_key][key]))
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key]))
                     elif conf['scale'] == 'f':
                         if key[-2:] == '_f':
-                            data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key[:-2], api_json[device_type_key][device_id_key][key]))
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key]))
                     elif conf['scale'] == 'k':
                         if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key[:-2], api_json[device_type_key][device_id_key][key] + 273.15))
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key] + 273.15))
     data.sort()
     return(data)
-
-
-#if config['scale'] == 'k'
-
 
 if __name__ == '__main__':
     get_config()
