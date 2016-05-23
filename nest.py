@@ -27,14 +27,6 @@ def get_config_from_cli():
     parser = argparse.ArgumentParser(
         description='Query the Nest API and return output in the requested format.')
     parser.add_argument(
-        '--username', '-u',
-        type=str,
-        help='Nest API username')
-    parser.add_argument(
-        '--password', '-p',
-        type=str,
-        help="Nest API password")
-    parser.add_argument(
         '--scale', '-s',
         type=str,
         default='c',
@@ -62,10 +54,12 @@ def get_config_from_cli():
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
     of the parsed file.'''
+    global conf
     config = configparser.ConfigParser()
 
     try:
         config.read(file_config)
+        conf = vars(config)['_sections']['nest']
         return vars(config)['_sections']['nest']
     except:
         sys.exit("Error reading configuration file.  Does it exist?")
@@ -87,17 +81,17 @@ def validate_config(cli_flags, file_config):
                 merged[key] = cli_flags[key]
             elif key in file_config:
                 merged[key] = file_config[key]
-    if 'username' not in merged:
-        sys.exit("No username specified!")
-    if 'password' not in merged:
-        sys.exit("No password specified!")
+    # if 'username' not in merged:
+    #     sys.exit("No username specified!")
+    # if 'password' not in merged:
+    #     sys.exit("No password specified!")
     return cli_flags
 
 
 def get_pin():
-    '''Make the user retrieve their temporary pincode from home.nest.com in order
+    '''Make the user retrieve their temporary PIN from home.nest.com in order
     to establish the long-term token used for API calls.
-    Returns user-input 8-digit temporary pincode.'''
+    Returns user-input 8-digit temporary PIN.'''
 
     client_id = 'client_id=b1da9bf1-7e2a-49d4-8728-5d4a75349003'
 
@@ -110,7 +104,7 @@ def get_pin():
     print("\n\nLog in at the following URL:\n{}{}\n\n".format(oauth_base_url, state))
     pin = raw_input("Paste the PIN generated to continue setup: ")
     while len(pin) != 8:
-        pin = raw_input("Invalid pincode.  Paste the PIN from nest.home.com to continue setup: ")
+        pin = raw_input("Invalid PIN.  Paste the PIN from nest.home.com to continue setup: ")
     return(pin)
 
 
@@ -134,8 +128,8 @@ def create_tokenfile():
 
     home_dir = os.path.expanduser('~') + '/'
 
-    # TODO: The PIN should be stored in the same location as nest.py.
-    # TODO: Make sure the file actually contains a PIN.
+    # TODO: The token should be stored in the same location as nest.py.
+    # TODO: Make sure the file actually contains a token.
     if os.path.isfile(home_dir + '.nest'):
         return('~./nest already exists! Please rename or delete this file before re-running.')
     else:
@@ -178,7 +172,30 @@ def output_data():
     for device_type_key in api_json:
         for device_id_key in api_json[device_type_key]:
             for key in api_json[device_type_key][device_id_key]:
-                data.append("{}|{}|{}|{}".format(device_type_key, device_id_key, key, api_json[device_type_key][device_id_key][key]))
+                data.append("{}|{}|{}|{}".format(device_type_key,
+                                                 device_id_key,
+                                                 key,
+                                                 api_json[device_type_key][device_id_key][key]))
+                # create genericly-named temperature keys
+                if conf['format'] == 'observium':
+                    if conf['scale'] == 'c':
+                        if key[-2:] == '_c':
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key]))
+                    elif conf['scale'] == 'f':
+                        if key[-2:] == '_f':
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key]))
+                    elif conf['scale'] == 'k':
+                        if key[-2:] == '_c':
+                            data.append("{}|{}|{}|{}".format(device_type_key,
+                                                             device_id_key,
+                                                             key[:-2],
+                                                             api_json[device_type_key][device_id_key][key] + 273.15))
     data.sort()
     return(data)
 

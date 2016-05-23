@@ -1,12 +1,6 @@
 # Required.  Do not change.
 [nest]
 
-# Nest account email address
-username = someone@example.com
-
-# Password
-password = badpassword
-
 # Temperature scale.  Valid values:
 #   Celsius: c
 #   Fahrenheit: f
