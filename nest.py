@@ -168,7 +168,7 @@ def output_data():
     if conf['format'] == 'observium':
         return(output_observium())
     elif conf['format'] == 'json':
-        return(print(fetch_json()))
+        return(fetch_json())
     elif conf['format'] == 'csv':
         pass
 
