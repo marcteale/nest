@@ -60,7 +60,7 @@ def get_pin():
     to establish the long-term token used for API calls.
     Returns user-input 8-digit temporary PIN.'''
 
-    client_id = 'client_id=b1da9bf1-7e2a-49d4-8728-5d4a75349003'
+    client_id = 'client_id=e8042a21-e70e-49a6-8430-3fe17fcea7ed'
 
     oauth_base_url = 'https://home.nest.com/login/oauth2?{}&state='.format(client_id)
     # generate a unique-ish 'state' value to protect against cross-site request
