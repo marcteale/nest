@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-import nest
 import os.path
 import requests
 import json
 import time
+import uuid
 '''
 notes:
 API:
@@ -15,21 +15,17 @@ API:
 
 
 '''
-
-def store_token():
-    global token
-    token = nest.login()
-
-
 api_root = 'https://developer-api.nest.com/'
-token = nest.get_access_token()
+
+
 # load credentials from auth module
 
 # build query for camera
 
 def get_cameras():
     '''Retrieve list of camera device IDs and their friendly names'''
-    
+    home_dir = os.path.expanduser('~') + '/'
+        
     with open(home_dir + '.nest', 'r') as f:
         token = f.read()
     cameras_list = []
@@ -44,7 +40,8 @@ def get_cameras():
 
 
 def get_image():
-    #device_id = get_cameras()
+    token = login()
+    device_id = get_cameras()[0][0]
     response = requests.get(api_root + 'devices/cameras/'+ device_id + '/last_event/image_url/?auth=' + token)
     timestr = time.strftime("%Y%m%d-%H%M%S")
     path = '/home/bob/time_lapse/'
@@ -69,7 +66,7 @@ def get_pin():
     state = str(uuid.uuid4())
 
     print("\n\nLog in at the following URL:\n{}{}\n\n".format(oauth_base_url, state))
-    pin = input("Paste the PIN generated to continue setup: ")
+    pin = raw_input("Paste the PIN generated to continue setup: ")
     while len(pin) != 8:
         pin = input("Invalid PIN.  Paste the PIN from nest.home.com to continue setup: ")
     return(pin)
@@ -118,16 +115,11 @@ def login():    # need to update fetch_json() when renaming this
             token = f.read()
     return(token)
 
-# while True:
-#     try:
-#         get_image()
-#     except:
-#         pass
-#     time.sleep(60)
-
-
 
 if __name__ == '__main__':
-    login()
-    
-
+    while True:
+        try:
+            get_image()
+        except:
+            pass
+        time.sleep(60)
