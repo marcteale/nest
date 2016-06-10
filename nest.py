@@ -10,6 +10,7 @@ from pprint import pprint
 
 
 # TODO: Kill global variables.
+# TODO: Add an option for pretty-printing JSON
 
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
@@ -169,6 +170,13 @@ def output_csv(data):
     pass
 
 
+def extract_zip(data):
+    ''' Takes the API results, extracts and return the zip code.'''
+    struct_id = data['structures'].keys()[0]
+    zipcode = data['structures'][struct_id]['postal_code']
+    return zipcode
+
+
 if __name__ == '__main__':
     # Parse command line and config file options, and validate them.
     parser = argparse.ArgumentParser(
@@ -202,6 +210,7 @@ if __name__ == '__main__':
 
     outformat = config_merged['format']
     data = fetch_json()
+    zipcode = extract_zip(data)
     devices = data['devices']
     formatted = format_data(outformat, devices)
 
@@ -209,4 +218,4 @@ if __name__ == '__main__':
         for line in formatted:
             print(line)
     elif outformat == 'json':
-        pprint(formatted)
+        pprint(data)
