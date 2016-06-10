@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import argparse
 import configparser
 import json  # simplejson
@@ -7,49 +6,11 @@ import os.path
 import requests
 import sys
 import uuid
+from pprint import pprint
 
 
-def get_config():
-    '''Looks for command line args and config file.  Returns a dict of validated
-    options.'''
-
-    cli_flags = get_config_from_cli()
-    file_config = get_config_from_file(cli_flags['config'])
-    config_merged = validate_config(cli_flags, file_config)
-    return config_merged
-
-
-def get_config_from_cli():
-    '''Gets configuration from the command line args.  Returns a dict of
-    options.
-
-    TODO: The help doesn't print because of how this is called.'''
-    parser = argparse.ArgumentParser(
-        description='Query the Nest API and return output in the requested format.')
-    parser.add_argument(
-        '--scale', '-s',
-        type=str,
-        default='c',
-        choices=['c', 'f', 'k'],
-        help="Temperature scale.  Default: Celsius")
-    parser.add_argument(
-        '--format', '-f',
-        type=str,
-        default='observium',
-        choices=['json', 'csv', 'observium'],
-        help="Output format.  Default: observium")
-    parser.add_argument(
-        '-config', '-c',
-        type=str,
-        default='nest.conf',
-        help="Configuration file.  Default: nest.conf.")
-    parser.add_argument(
-        '--outfile', '-o',
-        type=str,
-        default=None,
-        help="Output file.  Defaults to stdout.")
-    return vars(parser.parse_args())
-
+# TODO: Kill global variables.
+# TODO: Add an option for pretty-printing JSON
 
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
@@ -71,20 +32,19 @@ def validate_config(cli_flags, file_config):
     precedence.  Exits uncleanly if invalid configuration is specified.
 
     Takes two dicts.  Returns the merged dict.'''
-    # TODO: The resulting dict contains unicode and ASCII.  It should be all one
-    # or the other.
 
-    merged = {}
+    # TODO: No error checking is done on the config file.
+    merged = file_config
 
     for key in cli_flags:
             if cli_flags[key] is not None:
                 merged[key] = cli_flags[key]
             elif key in file_config:
                 merged[key] = file_config[key]
-    # if 'username' not in merged:
-    #     sys.exit("No username specified!")
-    # if 'password' not in merged:
-    #     sys.exit("No password specified!")
+    if 'username' not in merged:
+        sys.exit("No username specified!")
+    if 'password' not in merged:
+        sys.exit("No password specified!")
     return cli_flags
 
 
@@ -140,6 +100,8 @@ def create_tokenfile():
 
 def login():    # need to update fetch_json() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
+    # TODO: Store the token in nest.conf
+    # TODO: Fail if no token is available
     home_dir = os.path.expanduser('~') + '/'
 
     try:
@@ -152,69 +114,108 @@ def login():    # need to update fetch_json() when renaming this
     return(token)
 
 
-def fetch_json():  # this needs to be fleshed out to include error checking.
-    '''Get the requested data from the Nest API.'''
+def fetch_json():
+    ''' Query the Nest API and return a json object. '''
+    # TODO: include error checking.
     api_root = 'https://developer-api.nest.com/'
     token = login()
 
     response = requests.get(api_root + '?auth=' + token)
 
     api_json = json.loads(response.text)
+    return(api_json)
 
-    return(api_json['devices'])
+
+def format_data(format, data):
+    ''' Takes a format and JSON data and returns output as requested. '''
+    if format == 'observium':
+        return(output_observium(data))
+    elif format == 'json':
+        return(data)
+    elif format == 'csv':
+        return(output_csv(data))
 
 
-def output_data():
-    if conf['format'] == 'observium':
-        return(output_observium())
-    elif conf['format'] == 'json':
-        return(fetch_json())
-    elif conf['format'] == 'csv':
-        pass
-
-def output_observium():
+def output_observium(data):
     '''Output the data in the requested format.'''
-    api_json = fetch_json()
-    data = []
+    output = []
     # loop through the json to flatten to tuple with pipe-delimited fields
-    for device_type_key in api_json:
-        for device_id_key in api_json[device_type_key]:
-            for key in api_json[device_type_key][device_id_key]:
-                data.append("{}|{}|{}|{}".format(device_type_key,
-                                                 device_id_key,
-                                                 key,
-                                                 api_json[device_type_key][device_id_key][key]))
+    for device_type_key in data:
+        for device_id_key in data[device_type_key]:
+            for key in data[device_type_key][device_id_key]:
+                output.append("{}|{}|{}|{}".format(device_type_key,
+                                                   device_id_key,
+                                                   key,
+                                                   data[device_type_key][device_id_key][key]))
                 # create genericly-named temperature keys
-                if conf['format'] == 'observium':
-                    if conf['scale'] == 'c':
-                        if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key]))
-                    elif conf['scale'] == 'f':
-                        if key[-2:] == '_f':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key]))
-                    elif conf['scale'] == 'k':
-                        if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key] + 273.15))
-    data.sort()
-    print('<<<nest>>>')
-    for line in data:
-        print(line)
-    return
+                if conf['scale'] == 'c':
+                    if key[-2:] == '_c':
+                        output.append("{}|{}|{}|{}".format(
+                            device_type_key,
+                            device_id_key,
+                            key[:-2],
+                            data[device_type_key][device_id_key][key]))
+                elif conf['scale'] == 'f':
+                    if key[-2:] == '_f':
+                        output.append("{}|{}|{}|{}".format(
+                            device_type_key,
+                            device_id_key,
+                            key[:-2],
+                            data[device_type_key][device_id_key][key]))
+    output = sorted(output)
+    return output
 
 
-def output_csv():
+def output_csv(data):
     pass
 
 
+def extract_zip(data):
+    ''' Takes the API results, extracts and return the zip code.'''
+    struct_id = data['structures'].keys()[0]
+    zipcode = data['structures'][struct_id]['postal_code']
+    return zipcode
+
+
 if __name__ == '__main__':
-    get_config()
-    output_data()
+    # Parse command line and config file options, and validate them.
+    parser = argparse.ArgumentParser(
+        description='Query the Nest API and return output in the requested format.')
+    parser.add_argument(
+        '--scale', '-s',
+        type=str,
+        default='c',
+        choices=['c', 'f'],
+        help="Temperature scale.  Default: Celsius")
+    parser.add_argument(
+        '--format', '-f',
+        type=str,
+        default='observium',
+        choices=['json', 'csv', 'observium'],
+        help="Output format.  Default: observium")
+    parser.add_argument(
+        '-config', '-c',
+        type=str,
+        default='nest.conf',
+        help="Configuration file.  Default: nest.conf.")
+    parser.add_argument(
+        '--outfile', '-o',
+        type=str,
+        default=None,
+        help="Output file.  Defaults to stdout.")
+
+    cli_flags = vars(parser.parse_args())
+    file_config = get_config_from_file(cli_flags['config'])
+    config_merged = validate_config(cli_flags, file_config)
+
+    outformat = config_merged['format']
+    data = fetch_json()
+    zipcode = extract_zip(data)
+    devices = data['devices']
+    formatted = format_data(outformat, devices)
+
+    if outformat == 'observium':
+        for line in formatted:
+            print(line)
+    elif outformat == 'json':
+        pprint(data)
