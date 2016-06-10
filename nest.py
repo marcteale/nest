@@ -6,7 +6,7 @@ import os.path
 import requests
 import sys
 import uuid
-# from pprint import pprint
+from pprint import pprint
 
 
 # TODO: Kill global variables.
@@ -122,8 +122,7 @@ def fetch_json():
     response = requests.get(api_root + '?auth=' + token)
 
     api_json = json.loads(response.text)
-
-    return(api_json['devices'])
+    return(api_json)
 
 
 def format_data(format, data):
@@ -201,9 +200,13 @@ if __name__ == '__main__':
     file_config = get_config_from_file(cli_flags['config'])
     config_merged = validate_config(cli_flags, file_config)
 
-    format = config_merged['format']
+    outformat = config_merged['format']
     data = fetch_json()
-    formatted = format_data(format, data)
+    devices = data['devices']
+    formatted = format_data(outformat, devices)
 
-    for line in formatted:
-        print(line)
+    if outformat == 'observium':
+        for line in formatted:
+            print(line)
+    elif outformat == 'json':
+        pprint(formatted)
