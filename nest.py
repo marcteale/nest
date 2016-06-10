@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import argparse
 import configparser
 import json  # simplejson
@@ -7,48 +6,7 @@ import os.path
 import requests
 import sys
 import uuid
-
-
-def get_config():
-    '''Looks for command line args and config file.  Returns a dict of validated
-    options.'''
-
-    cli_flags = get_config_from_cli()
-    file_config = get_config_from_file(cli_flags['config'])
-    config_merged = validate_config(cli_flags, file_config)
-    return config_merged
-
-
-def get_config_from_cli():
-    '''Gets configuration from the command line args.  Returns a dict of
-    options.
-
-    TODO: The help doesn't print because of how this is called.'''
-    parser = argparse.ArgumentParser(
-        description='Query the Nest API and return output in the requested format.')
-    parser.add_argument(
-        '--scale', '-s',
-        type=str,
-        default='c',
-        choices=['c', 'f', 'k'],
-        help="Temperature scale.  Default: Celsius")
-    parser.add_argument(
-        '--format', '-f',
-        type=str,
-        default='observium',
-        choices=['json', 'csv', 'observium'],
-        help="Output format.  Default: observium")
-    parser.add_argument(
-        '-config', '-c',
-        type=str,
-        default='nest.conf',
-        help="Configuration file.  Default: nest.conf.")
-    parser.add_argument(
-        '--outfile', '-o',
-        type=str,
-        default=None,
-        help="Output file.  Defaults to stdout.")
-    return vars(parser.parse_args())
+# from pprint import pprint
 
 
 def get_config_from_file(file_config):
@@ -71,20 +29,19 @@ def validate_config(cli_flags, file_config):
     precedence.  Exits uncleanly if invalid configuration is specified.
 
     Takes two dicts.  Returns the merged dict.'''
-    # TODO: The resulting dict contains unicode and ASCII.  It should be all one
-    # or the other.
 
-    merged = {}
+    # TODO: No error checking is done on the config file.
+    merged = file_config
 
     for key in cli_flags:
             if cli_flags[key] is not None:
                 merged[key] = cli_flags[key]
             elif key in file_config:
                 merged[key] = file_config[key]
-    # if 'username' not in merged:
-    #     sys.exit("No username specified!")
-    # if 'password' not in merged:
-    #     sys.exit("No password specified!")
+    if 'username' not in merged:
+        sys.exit("No username specified!")
+    if 'password' not in merged:
+        sys.exit("No password specified!")
     return cli_flags
 
 
@@ -172,6 +129,7 @@ def output_data():
     elif conf['format'] == 'csv':
         pass
 
+
 def output_observium():
     '''Output the data in the requested format.'''
     api_json = fetch_json()
@@ -216,5 +174,34 @@ def output_csv():
 
 
 if __name__ == '__main__':
-    get_config()
+    # Parse command line and config file options, and validate them.
+    parser = argparse.ArgumentParser(
+        description='Query the Nest API and return output in the requested format.')
+    parser.add_argument(
+        '--scale', '-s',
+        type=str,
+        default='c',
+        choices=['c', 'f'],
+        help="Temperature scale.  Default: Celsius")
+    parser.add_argument(
+        '--format', '-f',
+        type=str,
+        default='observium',
+        choices=['json', 'csv', 'observium'],
+        help="Output format.  Default: observium")
+    parser.add_argument(
+        '-config', '-c',
+        type=str,
+        default='nest.conf',
+        help="Configuration file.  Default: nest.conf.")
+    parser.add_argument(
+        '--outfile', '-o',
+        type=str,
+        default=None,
+        help="Output file.  Defaults to stdout.")
+
+    cli_flags = vars(parser.parse_args())
+    file_config = get_config_from_file(cli_flags['config'])
+    config_merged = validate_config(cli_flags, file_config)
+
     output_data()
