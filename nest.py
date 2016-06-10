@@ -9,6 +9,8 @@ import uuid
 # from pprint import pprint
 
 
+# TODO: Kill global variables.
+
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
     of the parsed file.'''
@@ -97,6 +99,8 @@ def create_tokenfile():
 
 def login():    # need to update fetch_json() when renaming this
     '''Load or generate long-term access token and store it at ~/.nest'''
+    # TODO: Store the token in nest.conf
+    # TODO: Fail if no token is available
     home_dir = os.path.expanduser('~') + '/'
 
     try:
@@ -109,8 +113,9 @@ def login():    # need to update fetch_json() when renaming this
     return(token)
 
 
-def fetch_json():  # this needs to be fleshed out to include error checking.
-    '''Get the requested data from the Nest API.'''
+def fetch_json():
+    ''' Query the Nest API and return a json object. '''
+    # TODO: include error checking.
     api_root = 'https://developer-api.nest.com/'
     token = login()
 
@@ -121,55 +126,47 @@ def fetch_json():  # this needs to be fleshed out to include error checking.
     return(api_json['devices'])
 
 
-def output_data():
-    if conf['format'] == 'observium':
-        return(output_observium())
-    elif conf['format'] == 'json':
-        return(fetch_json())
-    elif conf['format'] == 'csv':
-        pass
+def format_data(format, data):
+    ''' Takes a format and JSON data and returns output as requested. '''
+    if format == 'observium':
+        return(output_observium(data))
+    elif format == 'json':
+        return(data)
+    elif format == 'csv':
+        return(output_csv(data))
 
 
-def output_observium():
+def output_observium(data):
     '''Output the data in the requested format.'''
-    api_json = fetch_json()
-    data = []
+    output = []
     # loop through the json to flatten to tuple with pipe-delimited fields
-    for device_type_key in api_json:
-        for device_id_key in api_json[device_type_key]:
-            for key in api_json[device_type_key][device_id_key]:
-                data.append("{}|{}|{}|{}".format(device_type_key,
-                                                 device_id_key,
-                                                 key,
-                                                 api_json[device_type_key][device_id_key][key]))
+    for device_type_key in data:
+        for device_id_key in data[device_type_key]:
+            for key in data[device_type_key][device_id_key]:
+                output.append("{}|{}|{}|{}".format(device_type_key,
+                                                   device_id_key,
+                                                   key,
+                                                   data[device_type_key][device_id_key][key]))
                 # create genericly-named temperature keys
-                if conf['format'] == 'observium':
-                    if conf['scale'] == 'c':
-                        if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key]))
-                    elif conf['scale'] == 'f':
-                        if key[-2:] == '_f':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key]))
-                    elif conf['scale'] == 'k':
-                        if key[-2:] == '_c':
-                            data.append("{}|{}|{}|{}".format(device_type_key,
-                                                             device_id_key,
-                                                             key[:-2],
-                                                             api_json[device_type_key][device_id_key][key] + 273.15))
-    data.sort()
-    print('<<<nest>>>')
-    for line in data:
-        print(line)
-    return
+                if conf['scale'] == 'c':
+                    if key[-2:] == '_c':
+                        output.append("{}|{}|{}|{}".format(
+                            device_type_key,
+                            device_id_key,
+                            key[:-2],
+                            data[device_type_key][device_id_key][key]))
+                elif conf['scale'] == 'f':
+                    if key[-2:] == '_f':
+                        output.append("{}|{}|{}|{}".format(
+                            device_type_key,
+                            device_id_key,
+                            key[:-2],
+                            data[device_type_key][device_id_key][key]))
+    output = sorted(output)
+    return output
 
 
-def output_csv():
+def output_csv(data):
     pass
 
 
@@ -204,4 +201,9 @@ if __name__ == '__main__':
     file_config = get_config_from_file(cli_flags['config'])
     config_merged = validate_config(cli_flags, file_config)
 
-    output_data()
+    format = config_merged['format']
+    data = fetch_json()
+    formatted = format_data(format, data)
+
+    for line in formatted:
+        print(line)
