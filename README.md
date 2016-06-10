@@ -5,15 +5,21 @@ Tested on CentOS 7 and Debian 7.
 
 # Installation
 
+* clone this repo
+* copy nest.conf.sample to nest.conf and put in your username and password.
+* run nest.py to generate the token
+
 ## Package requirements
 
 ### CentOS/RHEL
 
 * python-configparser
+* python-requests
 
 ### Debian
 
 * python-metaconfig
+* python-requests
 
 # Glossary:
 
