@@ -6,7 +6,7 @@ import os.path
 import requests
 import sys
 import uuid
-from pprint import pprint
+from pprint import pprint # NOQA
 
 
 # TODO: Kill global variables.
@@ -14,6 +14,7 @@ from pprint import pprint
 observium = True
 # TODO: Actually output to something other than STDOUT.
 # TODO: Read from the config file specified at the command line.
+# TODO: Read in client_id and pass it around as a parameter.
 
 
 def get_config_from_file(file_config):
@@ -201,5 +202,6 @@ if __name__ == '__main__':
     data = fetch_json()
     weather = get_weather(extract_zip(data), extract_units(data))
 
-    pprint(data)
-    pprint(weather)
+    if observium:
+        print('<<<nest>>>')
+    print json.dumps({'nest': data, 'weather': weather})
