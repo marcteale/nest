@@ -10,7 +10,9 @@ from pprint import pprint
 
 
 # TODO: Kill global variables.
-# TODO: Add an option for pretty-printing JSON
+# TODO: Make pretty-printing JSON optional.
+# TODO: Actually output to something other than STDOUT.
+# TODO: Get temperature scale from the Nest API instead of a config file.
 
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
@@ -119,8 +121,8 @@ def fetch_json():
     # TODO: include error checking.
     api_root = 'https://developer-api.nest.com/'
     token = login()
-
-    response = requests.get(api_root + '?auth=' + token)
+    params = {'auth': token}
+    response = requests.get(url=api_root, params=params)
 
     api_json = json.loads(response.text)
     return(api_json)
@@ -177,6 +179,27 @@ def extract_zip(data):
     return zipcode
 
 
+def get_outside_temp(zipcode, units='F'):
+    ''' Takes a zip code and queries openweathermap.org.  Returns the
+    temperature as a float.'''
+    if units == 'C':
+        units = 'metric'
+    else:
+        units = 'imperial'
+
+    params = {
+        'appid': '154497b64b6b3281f3843b597fe8ac55',
+        'zip': zipcode,
+        'units': units
+    }
+
+    baseurl = 'http://api.openweathermap.org/data/2.5/weather?'
+    resp = requests.get(url=baseurl, params=params)
+    weather = json.loads(resp.text)
+    # pprint(weather)
+    return(weather['main']['temp'])
+
+
 if __name__ == '__main__':
     # Parse command line and config file options, and validate them.
     parser = argparse.ArgumentParser(
@@ -211,11 +234,13 @@ if __name__ == '__main__':
     outformat = config_merged['format']
     data = fetch_json()
     zipcode = extract_zip(data)
+    outside_temp = get_outside_temp(zipcode)
     devices = data['devices']
     formatted = format_data(outformat, devices)
 
     if outformat == 'observium':
         for line in formatted:
             print(line)
+        print('outside_temp|{}'.format(outside_temp))
     elif outformat == 'json':
         pprint(data)
