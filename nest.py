@@ -10,9 +10,11 @@ from pprint import pprint
 
 
 # TODO: Kill global variables.
-# TODO: Make pretty-printing JSON optional.
+# TODO: Add config file and CLI args stuff for observium output
+observium = True
 # TODO: Actually output to something other than STDOUT.
-# TODO: Get temperature scale from the Nest API instead of a config file.
+# TODO: Read from the config file specified at the command line.
+
 
 def get_config_from_file(file_config):
     '''Gets configuration from the specified configuration file.  Returns a dict
@@ -74,12 +76,17 @@ def get_access_token():
     '''Generate and store the long-term token used for home.nest.com API calls.
     Returns acess token string 'c.123....' '''
 
-    client_id = 'client_id=b1da9bf1-7e2a-49d4-8728-5d4a75349003'
-
+    # TODO: Read access token and client secret from config
     pin = get_pin()
-    access_token_url = 'https://api.home.nest.com/oauth2/access_token?{}&code={}&client_secret=odIh0k73deLQbRHdNHgepDNPR&grant_type=authorization_code'.format(client_id, pin)
+    baseurl = 'https://api.home.nest.com/oauth2/'
+    params = {
+        'access_token': 'b1da9bf1-7e2a-49d4-8728-5d4a75349003',
+        'client_secret': 'odIh0k73deLQbRHdNHgepDNPR',
+        'grant_type': 'authorization_code',
+        'code': pin,
+    }
 
-    response = requests.post(access_token_url)
+    response = requests.post(url=baseurl, params=params)
     token_json = json.loads(response.text)
 
     return(token_json['access_token'])
@@ -128,44 +135,6 @@ def fetch_json():
     return(api_json)
 
 
-def format_data(format, data):
-    ''' Takes a format and JSON data and returns output as requested. '''
-    if format == 'observium':
-        return(output_observium(data))
-    elif format == 'json':
-        return(data)
-
-
-def output_observium(data):
-    '''Output the data in the requested format.'''
-    output = []
-    # loop through the json to flatten to tuple with pipe-delimited fields
-    for device_type_key in data:
-        for device_id_key in data[device_type_key]:
-            for key in data[device_type_key][device_id_key]:
-                output.append("{}|{}|{}|{}".format(device_type_key,
-                                                   device_id_key,
-                                                   key,
-                                                   data[device_type_key][device_id_key][key]))
-                # create genericly-named temperature keys
-                if conf['scale'] == 'c':
-                    if key[-2:] == '_c':
-                        output.append("{}|{}|{}|{}".format(
-                            device_type_key,
-                            device_id_key,
-                            key[:-2],
-                            data[device_type_key][device_id_key][key]))
-                elif conf['scale'] == 'f':
-                    if key[-2:] == '_f':
-                        output.append("{}|{}|{}|{}".format(
-                            device_type_key,
-                            device_id_key,
-                            key[:-2],
-                            data[device_type_key][device_id_key][key]))
-    output = sorted(output)
-    return output
-
-
 def extract_zip(data):
     ''' Takes the API results, extracts and return the zip code.'''
     struct_id = data['structures'].keys()[0]
@@ -173,13 +142,9 @@ def extract_zip(data):
     return zipcode
 
 
-def get_outside_temp(zipcode, units='F'):
+def get_weather(zipcode, units='F'):
     ''' Takes a zip code and queries openweathermap.org.  Returns the
     temperature as a float.'''
-    if units == 'C':
-        units = 'metric'
-    else:
-        units = 'imperial'
 
     params = {
         'appid': '154497b64b6b3281f3843b597fe8ac55',
@@ -189,9 +154,23 @@ def get_outside_temp(zipcode, units='F'):
 
     baseurl = 'http://api.openweathermap.org/data/2.5/weather?'
     resp = requests.get(url=baseurl, params=params)
-    weather = json.loads(resp.text)
-    # pprint(weather)
-    return(weather['main']['temp'])
+    return json.loads(resp.text)
+
+
+def extract_units(data):
+    ''' Takes the results of the Nest API and extracts the units of measurement
+    used.  Returns 'metric' if 'C' and 'imperial if 'F'. '''
+    try:
+        therm_id = data['devices']['thermostats'].keys()[0]
+    except KeyError:
+        sys.exit('Error retrieving thermostat data.')
+
+    units = data['devices']['thermostats'][therm_id]['temperature_scale']
+
+    if units == 'C':
+        return 'metric'
+    else:
+        return 'imperial'
 
 
 if __name__ == '__main__':
@@ -204,12 +183,6 @@ if __name__ == '__main__':
         default='c',
         choices=['c', 'f'],
         help="Temperature scale.  Default: Celsius")
-    parser.add_argument(
-        '--format', '-f',
-        type=str,
-        default='observium',
-        choices=['json', 'observium'],
-        help="Output format.  Default: observium")
     parser.add_argument(
         '-config', '-c',
         type=str,
@@ -225,16 +198,8 @@ if __name__ == '__main__':
     file_config = get_config_from_file(cli_flags['config'])
     config_merged = validate_config(cli_flags, file_config)
 
-    outformat = config_merged['format']
     data = fetch_json()
-    zipcode = extract_zip(data)
-    outside_temp = get_outside_temp(zipcode)
-    devices = data['devices']
-    formatted = format_data(outformat, devices)
+    weather = get_weather(extract_zip(data), extract_units(data))
 
-    if outformat == 'observium':
-        for line in formatted:
-            print(line)
-        print('outside_temp|{}'.format(outside_temp))
-    elif outformat == 'json':
-        pprint(data)
+    pprint(data)
+    pprint(weather)
