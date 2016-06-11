@@ -7,19 +7,9 @@ username = user@example.com
 # Password
 password = badpassword
 
-# Temperature scale.  Valid values:
-#   Celsius: c
-#   Fahrenheit: f
-#   Kelvin: k (because why not)
-#
-# If no scale is specified, default to Celsius.
-scale = f
-
 # Output format.  Valid values:
 #   json
-#   csv
 #   observium
-#   rrdtool
 format = observium
 
 # Output file.  Defaults to stdout.
