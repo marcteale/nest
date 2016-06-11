@@ -134,8 +134,6 @@ def format_data(format, data):
         return(output_observium(data))
     elif format == 'json':
         return(data)
-    elif format == 'csv':
-        return(output_csv(data))
 
 
 def output_observium(data):
@@ -166,10 +164,6 @@ def output_observium(data):
                             data[device_type_key][device_id_key][key]))
     output = sorted(output)
     return output
-
-
-def output_csv(data):
-    pass
 
 
 def extract_zip(data):
@@ -214,7 +208,7 @@ if __name__ == '__main__':
         '--format', '-f',
         type=str,
         default='observium',
-        choices=['json', 'csv', 'observium'],
+        choices=['json', 'observium'],
         help="Output format.  Default: observium")
     parser.add_argument(
         '-config', '-c',
